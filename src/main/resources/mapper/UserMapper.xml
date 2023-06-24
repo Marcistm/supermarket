@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.demo.dao.UserMapper">
+    <resultMap id="userMap" type="User">
+        <id column="uid" property="id"/>
+        <result column="name" property="name"/>
+        <!--角色信息-->
+        <collection property="roles" javaType="list" ofType="Role">
+            <id column="rid" property="id"/>
+            <result column="rname" property="name"/>
+        </collection>
+    </resultMap>
+
+    <select id="findRolesByUserName" parameterType="String" resultMap="userMap">
+      SELECT u.id uid,u.name,r.id rid,r.NAME rname
+      FROM tbl_user u
+      LEFT JOIN tbl_user_role ur
+      ON u.id=ur.userid
+      LEFT JOIN tbl_role r
+      ON ur.roleid=r.id
+      WHERE u.name=#{name}
+    </select>
+
+    <select id="findPermsByRoleId" parameterType="String" resultType="Perms">
+      SELECT p.id,p.NAME,p.url,r.NAME
+      FROM tbl_role r
+      LEFT JOIN tbl_role_perms rp
+      ON r.id=rp.roleid
+      LEFT JOIN tbl_perms p ON rp.permsid=p.id
+      WHERE r.id=#{id}
+    </select>
+
+
+</mapper>

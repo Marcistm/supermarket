@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>注册页面</title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/signin.css}" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+
+
+</head>
+<body class="text-center">
+<form class="form-signin" th:action="@{/user/findPW}">
+
+    <img class="mb-4" th:src="@{/img/OIP-C.jpg}" alt="">
+
+    <h1 class="h3 mb-3 font-weight-normal">找回密码</h1>
+    <label class="sr-only">Username</label>
+    <input hidden="hidden" type="text" name="id" >
+    <input type="text" name="name" class="form-control"  required="" autofocus="" placeholder="用户名" >
+
+    <div class="form-group">
+        <input id="userMail" type="email" name="email" class="form-control" placeholder="邮箱" style="float: left;">
+        <button type="button" class="btn btn-primary" style="float: right" onclick="sendVer()" >获取验证码</button>
+    </div>
+
+    <input id="checkNum" type="text" name="code" class="form-control"  placeholder="验证码">
+
+    <button type="button" class="btn btn-lg btn-primary btn-block" onclick="verification()">找回</button>
+
+    <input id="PW" readonly="readonly" class="form-control" placeholder="密码">
+    <p class="mt-5 mb-3 text-muted">© 2022</p>
+</form>
+
+
+<script>
+    var ver;
+    function sendVer() {
+        var userMail = $("#userMail").val();
+        //发送
+        $.ajax({
+            method: "get",
+            url: "/user/userSendVer",
+            dataType: "json",
+            data: {userMail: userMail},
+            success: function (result) {
+                // alert(result.data[0].userId);
+                if(result.code == 0) {
+                    alert(result.msg);
+                    ver = result.data;
+                }
+                else{
+                    alert("发送失败！");
+                }
+            },
+            error: function (error) {
+                alert(error);
+
+            }
+        });
+    }
+
+    function verification() {
+        var checkNum = $("#checkNum").val();
+        if (checkNum == ver) {
+            alert("验证成功！");
+            $("#PW").val("123")
+            return;
+        }
+        else{
+            alert("验证码错误，请重试");
+        }
+    }
+
+
+</script>
+</body>
+
+</html>

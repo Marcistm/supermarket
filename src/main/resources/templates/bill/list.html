@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<!-- saved from url=(0052)http://getbootstrap.com/docs/4.0/examples/dashboard/ -->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.5.1/jquery.js"></script>
+
+    <title>Dashboard Template for Bootstrap</title>
+    <!-- Bootstrap core CSS -->
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    <style type="text/css">
+        /* Chart.js */
+
+        @-webkit-keyframes chartjs-render-animation {
+            from {
+                opacity: 0.99
+            }
+            to {
+                opacity: 1
+            }
+        }
+
+        @keyframes chartjs-render-animation {
+            from {
+                opacity: 0.99
+            }
+            to {
+                opacity: 1
+            }
+        }
+
+        .chartjs-render-monitor {
+            -webkit-animation: chartjs-render-animation 0.001s;
+            animation: chartjs-render-animation 0.001s;
+        }
+    </style>
+</head>
+
+<body>
+
+<div th:insert="~{/common/common::topBar}"></div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div th:insert="~{/common/common::sideBar(activeUri='billList')}"></div>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+            <h2>订单管理</h2>
+			<button class="btn btn-primary btn-primary" data-toggle="modal" data-target="#myModal">新增订单</button>
+            <p></p>
+            <div>
+                <form class="form-inline" th:action="@{/bill/find}">
+                    <div class="form-group" >
+                        <input th:value="${billCode}" name="billCode" type="text" class="form-control" placeholder="订单编号">
+                    </div>
+                    <div class="form-group" >
+                        <input th:value="${productName}" name="productName" type="text" class="form-control" placeholder="产品名称">
+                    </div>
+
+                    <button id="btn_find" type="submit" class="btn btn-default" >查找</button>
+                </form>
+            </div>
+            <p></p>
+            <div class="table-responsive">
+                <table class="table table-striped table-sm">
+                    <thead>
+                    <tr>
+                        <th><input id="js-all-checkbox" type="checkbox" onclick="checkAll(this)" ></th>
+                        <th>id</th>
+                        <th>订单编号</th>
+                        <th>产品名称</th>
+                        <th>产品描述</th>
+                        <th>价格</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="bill:${bills}">
+                        <td>
+                            <input type="checkbox" name="select" th:value="${bill.id}" onclick="checkAll(this)">
+                        </td>
+                        <td th:text="${bill.id}"></td>
+                        <td th:text="${bill.billCode}"></td>
+                        <td th:text="${bill.productName}"></td>
+                        <td th:text="${bill.productDesc}"></td>
+                        <td th:text="${bill.price}"></td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#myModal" th:onclick="set([[${bill.id}]])">编辑</button>
+                            <button  th:attr="del_uri=@{/bill/bill/}+${bill.id}" class="btn btn-sm btn-primary btn-danger deleteBtn">删除</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+                <form id="deleteEmpForm" method="post">
+                    <input type="hidden" name="_method" value="delete"/>
+                </form>
+                <ul class="pagination pull-right no-margin">
+                    <li class="page-item">
+                        <a class="page-link" th:href="@{/bill/list}">首页</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link"
+                           th:href="@{/bill/list(pageNow=${pageInfo.hasPreviousPage}?${pageInfo.prePage}:1)}">上一页</a>
+                    </li>
+
+                    <li class="page-item" th:each="nav:${pageInfo.navigatepageNums}">
+                        <a class="page-link" th:href="@{/bill/list(pageNow=${nav})}" th:text="${nav}"
+                           th:if="${nav != pageInfo.pageNum}"></a>
+                        <span class="page-link" style="font-weight: bold; background: #6faed9;"
+                              th:if="${nav == pageInfo.pageNum}" th:text="${nav}"></span>
+                    </li>
+
+
+                    <li class="page-item">
+                        <a class="page-link"
+                           th:href="@{/bill/list(pageNow=${pageInfo.hasNextPage}?${pageInfo.nextPage}:${pageInfo.pages})}">下一页</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" th:href="@{/bill/list(pageNow=${pageInfo.pages})}">尾页</a>
+                    </li>
+                </ul>
+                <p>当前 <span th:text="${pageInfo.pageNum}"></span> 页,总 <span th:text="${pageInfo.pages}"></span> 页,共
+                    <span th:text="${pageInfo.total}"></span> 条记录</p>
+
+                <!-- 模态框（Modal） -->
+                <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+                     aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title" id="myModalLabel">新增用户</h4>
+                            </div>
+                            <div class="modal-body">      <!--需要区分是员工修改还是添加；-->
+                                <form th:action="@{/bill/bill}" method="post" id="addForm">
+                                    <!--发送put请求修改员工数据-->
+                                    <!--
+                                    1、SpringMVC中配置HiddenHttpMethodFilter;（SpringBoot自动配置好的）
+                                    2、页面创建一个post表单
+                                    3、创建一个input项，name="_method";值就是我们指定的请求方式
+                                    -->
+                                    <input type="hidden" name="_method" value="put">
+                                    <input type="hidden" id="hiddenUserId" name="id">
+                                    <div class="form-group">
+                                        <label>订单编号</label>
+                                        <input id="billCode" name="billCode" type="text" class="form-control" placeholder="xxx">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>产品名称</label><br/>
+                                        <input id="productName" name="productName" type="text" class="form-control" placeholder="xxx">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>产品描述</label>
+                                        <input id="productDesc" name="productDesc" type="text" class="form-control" placeholder="xxx">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>价格</label>
+                                        <input id="price" name="price" type="text" class="form-control" placeholder="xxxx">
+                                    </div>
+
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                                        <button type="submit" class="btn btn-primary">提交</button>
+                                    </div>
+                                </form>
+                            </div>
+
+                        </div><!-- /.modal-content -->
+                    </div><!-- /.modal -->
+                </div>
+
+            </div>
+        </main>
+    </div>
+</div>
+<script>
+
+
+    $(".deleteBtn").click(function(){
+        //删除当前员工的
+        var v = confirm("确定删除？");
+        //点击[确定]（返回true）则弹出一个确认框
+        if(v){
+            console.log($(this).attr("del_uri"));
+            $("#deleteEmpForm").attr("action", $(this).attr("del_uri")).submit();
+            return false;
+        }
+    });
+
+    function set(id) {
+        $('#hiddenUserId').val(id);
+        $.ajax({
+            url: "/bill/bill/" + id,
+            type: "get",
+            dataType: "json",
+            success:function (result) {
+                $('#billCode').val(result.billCode);
+                $('#productName').val(result.productName);
+                $('#productDesc').val(result.productDesc);
+                $('#price').val(result.price);
+                $('#myModalLabel').text("修改订单")
+                // $('#addForm').attr("method", "put")
+                // $('#addForm').attr("action", "/user/update")
+            },
+            error:function () {
+                alert('出错了呜呜呜')
+            }
+        })
+
+    }
+
+</script>
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+
+<script type="text/javascript" src="/js/popper.min.js"></script>
+<script type="text/javascript" src="/js/bootstrap.min.js"></script>
+<!-- Icons -->
+<script type="text/javascript" src="/js/feather.min.js"></script>
+<script>
+    feather.replace()
+</script>
+<!-- Graphs -->
+<script type="text/javascript" src="/js/Chart.min.js"></script>
+<script>
+    var ctx = document.getElementById("myChart");
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+            datasets: [{
+                data: [15339, 21345, 18483, 24003, 23489, 24092, 12034],
+                lineTension: 0,
+                backgroundColor: 'transparent',
+                borderColor: '#007bff',
+                borderWidth: 4,
+                pointBackgroundColor: '#007bff'
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: false
+                    }
+                }]
+            },
+            legend: {
+                display: false,
+            }
+        }
+    });
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>注册页面</title>
+    <link th:href="@{/css/bootstrap.min.css}" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/signin.css}" rel="stylesheet">
+
+</head>
+<body class="text-center">
+<form class="form-signin" th:action="@{/user/resetPW}">
+
+    <img class="mb-4" th:src="@{/img/OIP-C.jpg}" alt="">
+
+    <h1 class="h3 mb-3 font-weight-normal">修改密码</h1>
+    <label class="sr-only">Username</label>
+    <input hidden="hidden" type="text" name="id" th:value="${user.id}">
+
+    <input type="text" name="name" class="form-control"  required="" autofocus="" th:value="${user.name}">
+    <label class="sr-only">Password</label>
+    <input type="password" name="password" class="form-control"  required="" value="">
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">修改</button>
+
+    <p class="mt-5 mb-3 text-muted">© 2022</p>
+</form>
+
+</body>
+
+</html>
